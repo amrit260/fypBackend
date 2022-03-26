@@ -11,8 +11,10 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
-const imageRoutes = require('./routes/imageRoutes');
+// const imageRoutes = require('./routes/imageRoutes');
 const cors = require('cors');
+const Importer = require('./dev-data/data/import-dev-data');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 app.use(cors());
@@ -62,18 +64,25 @@ app.use(express.static(`${__dirname}/public`));
 // Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  // console.log(req.headers);
+  // req.body.startLocation = JSON.parse(req.body.startLocation);
   next();
 });
 
 // 3) ROUTES
+
 app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
-app.use('/images', imageRoutes);
+app.get('/import999', Importer);
+app.get('/', (req, res) => {
+  console.log('inside get');
+  // console.log(__dirname + '\\public\\build\\idex');
+});
+// app.use('/images', imageRoutes);
 
 app.all('*', (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 app.use(globalErrorHandler);

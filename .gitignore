@@ -1,2 +1,13 @@
+# npm
 node_modules
-dev-data
+package-lock.json
+*.log
+*.gz
+
+# Coveralls
+.nyc_output
+coverage
+
+# Benchmarking
+benchmarks/graphs
+config.env
