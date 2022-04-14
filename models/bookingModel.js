@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const tourModel = require('./tourModel');
 
 const bookingSchema = new mongoose.Schema({
   tour: {
@@ -21,20 +22,21 @@ const bookingSchema = new mongoose.Schema({
   },
   verified: {
     type: Boolean,
-    default: true
-  },
-  userID: String
+    default: false
+  }
 });
 
 bookingSchema.pre(/^find/, function(next) {
   this.populate('user').populate({
     path: 'tour',
-    select: 'name guides'
+    select: 'name guides images'
   });
+
   next();
 });
-bookingSchema.pre('save', function(next) {
+bookingSchema.pre('save', async function(next) {
   this.userID = this.user.id;
+
   next();
 });
 

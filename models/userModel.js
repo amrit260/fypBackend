@@ -42,6 +42,13 @@ const userSchema = new mongoose.Schema(
         message: 'Passwords are not the same!'
       }
     },
+    phone: {
+      type: Number,
+      required: [true, 'Please provide your phone number'],
+      unique: true,
+      minlength: [10, 'Phone number must be at least 10 characters'],
+      maxlength: [10, 'Phone number must be at most 10 characters']
+    },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,

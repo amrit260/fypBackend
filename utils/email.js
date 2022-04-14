@@ -1,13 +1,14 @@
 const nodemailer = require('nodemailer');
 const pug = require('pug');
 const htmlToText = require('html-to-text');
+const smtpTransport = require('nodemailer-smtp-transport');
 
 module.exports = class Email {
   constructor(user, url) {
     this.to = user.email;
     this.firstName = user.name.split(' ')[0];
     this.url = url;
-    this.from = `Team Explore Nepal `;
+    this.from = 'Team Explore Nepal';
   }
 
   newTransport() {
@@ -15,8 +16,10 @@ module.exports = class Email {
       // Sendgrid
       return nodemailer.createTransport({
         service: 'gmail',
+        host: 'smtp.gmail.com',
+
         auth: {
-          user: process.env.GMAIL_USER,
+          user: process.env.GMAIL_USERNAME,
           pass: process.env.GMAIL_PASSWORD
         }
       });
@@ -35,7 +38,12 @@ module.exports = class Email {
   // Send the actual email
   async send(template, subject) {
     // 1) Render HTML based on a pug template
-    const html = `this is an email `;
+
+    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+      firstName: this.firstName,
+      url: this.url,
+      subject
+    });
 
     // 2) Define email options
     const mailOptions = {
@@ -43,7 +51,7 @@ module.exports = class Email {
       to: this.to,
       subject,
       html,
-      text: htmlToText.fromString(html)
+      text: 'hello'
     };
 
     // 3) Create a transport and send email

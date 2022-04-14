@@ -11,10 +11,13 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const authController = require('./controllers/authController');
 // const imageRoutes = require('./routes/imageRoutes');
 const cors = require('cors');
 const Importer = require('./dev-data/data/import-dev-data');
 const bookingRoutes = require('./routes/bookingRoutes');
+const scrapData = require('./utils/scrapper');
+const recommendation = require('./utils/recommendation');
 
 const app = express();
 app.use(cors());
@@ -29,7 +32,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Limit requests from same API
 const limiter = rateLimit({
-  max: 200,
+  max: 1000,
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour!'
 });
@@ -74,7 +77,10 @@ app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.get('/api/v1/rec', authController.isLoggedIn, recommendation);
+
 app.get('/import999', Importer);
+app.get('/scrap', scrapData);
 app.get('/', (req, res) => {
   console.log('inside get');
   // console.log(__dirname + '\\public\\build\\idex');

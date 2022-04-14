@@ -6,14 +6,19 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.post('/bookTour', bookingController.bookTour);
+router.post(
+  '/bookTour',
+  bookingController.filterBooking,
+  bookingController.bookTour
+);
+router.get('/mybookings', bookingController.getBookingsOfUser);
 
 router.use(authController.restrictTo('admin', 'lead-guide'));
 
 router
   .route('/')
   .get(bookingController.getAllBookings)
-  .post(bookingController.createBooking);
+  .post(bookingController.filterBooking, bookingController.createBooking);
 
 router
   .route('/:id')

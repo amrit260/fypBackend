@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const Booking = require('../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
+const AppError = require('./../utils/appError');
 
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 1) Get the currently booked tour
@@ -57,13 +58,6 @@ exports.bookTour = catchAsync(async (req, res, next) => {
   });
 });
 
-const createBookingCheckout = async session => {
-  const tour = session.client_reference_id;
-  const user = (await User.findOne({ email: session.customer_email })).id;
-  const price = session.display_items[0].amount / 100;
-  await Booking.create({ tour, user, price });
-};
-
 exports.webhookCheckout = (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
@@ -83,6 +77,47 @@ exports.webhookCheckout = (req, res, next) => {
 
   res.status(200).json({ received: true });
 };
+
+exports.filterBooking = catchAsync(async (req, res, next) => {
+  console.log(req);
+  const tour = await Tour.findById(req.body.tour);
+
+  if (!tour) {
+    return next(
+      new AppError('the tour you are trying to find no longer exist', 404)
+    );
+  }
+
+  if (req.user.booking.length > 0) {
+    return next(
+      new AppError(
+        'You have already booked a tour. You can book next tour after 3 months.',
+        404
+      )
+    );
+  }
+  req.body.price = tour.price;
+  req.body.user = req.user.id;
+  next();
+});
+
+const createBookingCheckout = async session => {
+  const tour = session.client_reference_id;
+  const user = (await User.findOne({ email: session.customer_email })).id;
+  const price = session.display_items[0].amount / 100;
+  await Booking.create({ tour, user, price });
+};
+
+exports.getBookingsOfUser = catchAsync(async (req, res, next) => {
+  let bookings = await Booking.find({ user: req.user.id });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: bookings
+    }
+  });
+});
 
 exports.createBooking = factory.createOne(Booking);
 exports.getBooking = factory.getOne(Booking);
